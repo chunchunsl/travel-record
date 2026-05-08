@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的旅行相册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            padding-top: 80px;
+            background: #000;
+        }
+
+
+        .nav-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+        }
+        .nav-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .nav-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25,0.8,0.25,1);
+            white-space: nowrap;
+            opacity: 0.7;
+            transform: scale(0.9);
+        }
+        .nav-btn.active {
+            background: #409eff;
+            transform: scale(1.3);
+            font-weight: bold;
+            opacity: 1;
+            box-shadow: 0 0 18px rgba(64, 158, 255, 0.5);
+            z-index: 10;
+        }
+        .nav-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.3);
+            opacity: 0.9;
+        }
+
+
+        .music-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        #musicBtn {
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: rgba(64, 158, 255, 0.7);
+            color: #fff;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #musicBtn:hover {
+            background: #409eff;
+            transform: scale(1.05);
+        }
+
+
+        .slide-wrap {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+        .slide.active {
+            opacity: 1;
+        }
+
+
+        .album-section {
+            width: 100%;
+            min-height: 100vh;
+            padding: 60px 0;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-blend-mode: overlay;
+            background-color: rgba(0,0,0,0.55);
+            position: relative;
+            overflow: hidden;
+        }
+        .city-title{
+            text-align: center;
+            font-size: 42px;
+            color: #fff;
+            letter-spacing:6px;
+            padding:25px 0;
+            text-shadow: 0 2px 10px #000;
+        }
+
+
+        .video-box {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .video-box video {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            cursor: pointer;
+        }
+
+
+        .gallery {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            column-count: 3;
+            column-gap: 20px;
+        }
+        .photo {
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: block;
+        }
+        .photo:hover {
+            transform: translateY(-5px) scale(1.02);
+        }
+
+
+        .wait-text {
+            position:relative;
+            z-index:1;
+            opacity:0;
+            transition:all 1s ease;
+            text-align: center;
+            color: #fff;
+            font-size: 22px;
+            line-height: 2.8;
+            padding: 80px 30px;
+            text-shadow: 0 1px 8px #000;
+        }
+
+
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+        }
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 6px;
+        }
+        .close {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            font-size: 45px;
+            color: #fff;
+            cursor: pointer;
+        }
+        .prev, .next {
+            position: absolute;
+            top: 50%;
+            font-size: 50px;
+            color: #fff;
+            cursor: pointer;
+            transform: translateY(-50%);
+            user-select: none;
+        }
+        .prev { left: 25px; }
+        .next { right: 25px; }
+
+
+        @media (max-width: 768px) {
+            .nav-center { gap:5px; }
+            .nav-btn { padding:6px 8px; font-size:12px; }
+            .nav-btn.active { transform:scale(1.2); }
+            .city-title{font-size: 28px;}
+            .gallery { column-count: 2; }
+            body { padding-top: 90px; }
+            .music-box { top:15px; right:15px; }
+            #musicBtn { padding:6px 10px; font-size:12px; }
+        }
+        @media (max-width: 480px) {
+            .gallery { column-count: 1; }
+        }
+    </style>
+</head>
+
+<body>
+
+
+<div class="nav-container">
+    <div class="nav-center">
+        <button class="nav-btn active" data-target="home">首页</button>
+        <button class="nav-btn" data-target="bj">北京</button>
+        <button class="nav-btn" data-target="nj">南京</button>
+        <button class="nav-btn" data-target="sz">苏州</button>
+        <button class="nav-btn" data-target="sh">上海</button>
+        <button class="nav-btn" data-target="tj">天津</button>
+        <button class="nav-btn" data-target="wait">未完待续</button>
+    </div>
+</div>
+
+
+<div class="music-box">
+    <button id="musicBtn">暂停音乐</button>
+</div>
+
+
+<div class="slide-wrap" id="home">
+    <div class="slide active" style="background-image: url('images/slide1.png')"></div>
+    <div class="slide" style="background-image: url('images/slide2.png')"></div>
+</div>
+
+
+<div class="album-section" id="bj" style="background-image:url('images/bj_bg.jpg')">
+    <div class="city-title">北京 · 京城古韵</div>
+    <div class="gallery">
+        <img class="photo" src="images/bj1.jpg" alt="北京">
+        <img class="photo" src="images/bj2.jpg" alt="北京">
+        <img class="photo" src="images/bj3.jpg" alt="北京">
+        <img class="photo" src="images/bj4.jpg" alt="北京">
+        <img class="photo" src="images/bj5.jpg" alt="北京">
+        <img class="photo" src="images/bj6.jpg" alt="北京">
+        <img class="photo" src="images/bj7.jpg" alt="北京">
+        <img class="photo" src="images/bj8.jpg" alt="北京">
+        <img class="photo" src="images/bj9.jpg" alt="北京">
+        <img class="photo" src="images/bj10.jpg" alt="北京">
+    </div>
+</div>
+
+
+<div class="album-section" id="nj" style="background-image:url('images/nj_bg.jpg')">
+    <div class="city-title">南京 · 金陵风雅</div>
+    <div class="gallery">
+        <img class="photo" src="images/nj1.jpg" alt="南京">
+        <img class="photo" src="images/nj2.jpg" alt="南京">
+        <img class="photo" src="images/nj3.jpg" alt="南京">
+        <img class="photo" src="images/nj4.jpg" alt="南京">
+        <img class="photo" src="images/nj5.jpg" alt="南京">
+        <img class="photo" src="images/nj6.jpg" alt="南京">
+        <img class="photo" src="images/nj7.jpg" alt="南京">
+    </div>
+
+    <div style="max-width:400px;margin:30px auto;padding:0 20px;">
+        <video id="videoNanjing" controls playsinline preload="metadata" style="width:100%;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.4);">
+            <source src="images/nj_video.mp4" type="video/mp4">
+            你的浏览器不支持视频播放
+        </video>
+    </div>
+</div>
+
+
+<div class="album-section" id="sz" style="background-image:url('images/sz_bg.jpg')">
+    <div class="city-title">苏州 · 江南水乡</div>
+    <div class="gallery">
+        <img class="photo" src="images/sz1.jpg" alt="苏州">
+        <img class="photo" src="images/sz2.jpg" alt="苏州">
+        <img class="photo" src="images/sz3.jpg" alt="苏州">
+        <img class="photo" src="images/sz4.jpg" alt="苏州">
+    </div>
+</div>
+
+
+<div class="album-section" id="sh" style="background-image:url('images/sh_bg.jpg')">
+    <div class="city-title">上海 · 魔都繁华</div>
+    <div class="gallery">
+        <img class="photo" src="images/sh1.jpg" alt="上海">
+        <img class="photo" src="images/sh2.jpg" alt="上海">
+        <img class="photo" src="images/sh3.jpg" alt="上海">
+        <img class="photo" src="images/sh4.jpg" alt="上海">
+        <img class="photo" src="images/sh5.jpg" alt="上海">
+        <img class="photo" src="images/sh6.jpg" alt="上海">
+        <img class="photo" src="images/sh7.jpg" alt="上海">
+    </div>
+</div>
+
+
+<div class="album-section" id="tj" style="background-image:url('images/tj_bg.jpg')">
+    <div class="city-title">天津 · 津卫风情</div>
+    <div class="gallery">
+        <img class="photo" src="images/tj1.jpg" alt="天津">
+        <img class="photo" src="images/tj2.jpg" alt="天津">
+        <img class="photo" src="images/tj3.jpg" alt="天津">
+        <img class="photo" src="images/tj4.jpg" alt="天津">
+        <img class="photo" src="images/tj5.jpg" alt="天津">
+        <img class="photo" src="images/tj6.jpg" alt="天津">
+        <img class="photo" src="images/tj7.jpg" alt="天津">
+        <img class="photo" src="images/tj8.jpg" alt="天津">
+        <img class="photo" src="images/tj9.jpg" alt="天津">
+        <img class="photo" src="images/tj10.jpg" alt="天津">
+    </div>
+    <div class="video-box">
+        <video controls muted playsinline preload="metadata">
+            <source src="images/tj_video1.mp4" type="video/mp4">
+            你的浏览器不支持视频播放
+        </video>
+    </div>
+    <div class="video-box">
+        <video controls muted playsinline preload="metadata">
+            <source src="images/tj_video2.mp4" type="video/mp4">
+            你的浏览器不支持视频播放
+        </video>
+    </div>
+</div>
+
+
+<div class="album-section" id="wait" style="background-image:url('images/wait_bg.jpg')">
+    <div class="city-title">未完待续</div>
+
+    <div id="waitSlide" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; background:#000;">
+        <div class="wait-slide" style="position:absolute; top:0; left:0; width:100%; height:100%; background-size:cover; background-position:center; opacity:0; transition:opacity 1s;"></div>
+        <div class="wait-slide" style="position:absolute; top:0; left:0; width:100%; height:100%; background-size:cover; background-position:center; opacity:0; transition:opacity 1s;"></div>
+        <div class="wait-slide" style="position:absolute; top:0; left:0; width:100%; height:100%; background-size:cover; background-position:center; opacity:0; transition:opacity 1s;"></div>
+    </div>
+
+    <div class="wait-text">
+        人生漫漫，旅途不止<br>
+        前路山海，静待奔赴<br>
+        期待与你的下一次相遇<br>
+        下一站，仍在未来等我遇见
+    </div>
+
+    <button id="replayBtn" style="position:absolute; bottom:60px; left:50%; transform:translateX(-50%); padding:10px 26px; border-radius:30px; background:rgba(64,158,255,0.5); color:#fff; border:none; font-size:16px; cursor:pointer; transition:all 0.3s ease; z-index:20; opacity:0;">
+        重播
+    </button>
+</div>
+
+
+<div class="lightbox" id="lightbox">
+    <span class="close" onclick="closeImg()">×</span>
+    <span class="prev" onclick="prevImg()">←</span>
+    <span class="next" onclick="nextImg()">→</span>
+    <img id="bigImg">
+</div>
+
+
+<audio id="bgMusic" loop autoplay>
+    <source src="bgm.mp3" type="audio/mpeg">
+    你的浏览器不支持音频播放
+
+
+    <script>
+
+        const bgMusic = document.getElementById('bgMusic');
+        const musicBtn = document.getElementById('musicBtn');
+        let isPlay = true;
+        let bgMusicWasPlaying = true;
+
+        musicBtn.onclick = function(){
+            if(isPlay){
+                bgMusic.pause();
+                musicBtn.innerText="播放音乐";
+            }else{
+                bgMusic.play();
+                musicBtn.innerText="暂停音乐";
+            }
+            isPlay = !isPlay;
+        };
+
+
+        let slides = document.querySelectorAll('.slide');
+        let currentSlide = 0;
+        function changeSlide(){
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide+1)%slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+        setInterval(changeSlide, 4000);
+
+
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const sections = document.querySelectorAll('.album-section, .slide-wrap');
+
+        navBtns.forEach(btn=>{
+            btn.onclick = function(){
+                navBtns.forEach(b=>b.classList.remove('active'));
+                this.classList.add('active');
+                const target = this.dataset.target;
+                document.getElementById(target).scrollIntoView({behavior:'smooth'});
+            }
+        });
+
+        function scrollActiveNav(){
+            let scrollY = window.scrollY + 150;
+            sections.forEach(sec=>{
+                let top = sec.offsetTop - 100;
+                let bottom = top + sec.offsetHeight;
+                let id = sec.id;
+                if(scrollY >= top && scrollY < bottom){
+                    navBtns.forEach(b=>b.classList.remove('active'));
+                    document.querySelector(`.nav-btn[data-target="${id}"]`).classList.add('active');
+                }
+            });
+        }
+        window.addEventListener('scroll', scrollActiveNav);
+
+
+        let nowList = [];
+        let nowIndex = 0;
+        const lightbox = document.getElementById('lightbox');
+        const bigImg = document.getElementById('bigImg');
+
+        function bindPhotoEvent(){
+            const photos = document.querySelectorAll('.photo');
+            nowList = Array.from(photos);
+            photos.forEach((item,idx)=>{
+                item.onclick = ()=>{
+                    nowIndex = idx;
+                    bigImg.src = item.src;
+                    lightbox.style.display = 'flex';
+                }
+            });
+        }
+        bindPhotoEvent();
+
+        function closeImg(){ lightbox.style.display='none'; }
+        function prevImg(){
+            nowIndex--;
+            if(nowIndex<0) nowIndex=nowList.length-1;
+            bigImg.src=nowList[nowIndex].src;
+        }
+        function nextImg(){
+            nowIndex++;
+            if(nowIndex>=nowList.length) nowIndex=0;
+            bigImg.src=nowList[nowIndex].src;
+        }
+        lightbox.onclick = e=>{ if(e.target===lightbox) closeImg(); };
+
+
+        const videoNanjing = document.getElementById('videoNanjing');
+        let bgmPausedByVideo = false;
+
+        videoNanjing.addEventListener('play',()=>{
+            if(!bgMusic.paused){
+                bgMusicWasPlaying = true;
+                bgMusic.pause();
+                bgmPausedByVideo = true;
+            }
+        });
+        videoNanjing.addEventListener('ended',()=>{
+            if(bgmPausedByVideo && bgMusicWasPlaying){
+                bgMusic.play();
+                bgmPausedByVideo = false;
+            }
+        });
+        videoNanjing.addEventListener('pause',()=>{
+            if(bgmPausedByVideo && bgMusicWasPlaying){
+                bgMusic.play();
+                bgmPausedByVideo = false;
+            }
+        });
+
+
+        let waitSlides = document.querySelectorAll('.wait-slide');
+        let waitSlideIndex = 0;
+        let waitInterval;
+        let waitPlayed = false;
+
+        waitSlides[0].style.backgroundImage = "url('images/wait1.jpg')";
+        waitSlides[1].style.backgroundImage = "url('images/wait2.jpg')";
+        waitSlides[2].style.backgroundImage = "url('images/wait3.jpg')";
+
+        const waitSlideWrap = document.getElementById('waitSlide');
+        const waitText = document.querySelector('.wait-text');
+        const replayBtn = document.getElementById('replayBtn');
+
+        function resetWaitSlide() {
+            waitSlideIndex = 0;
+            waitSlides.forEach(s => s.style.opacity = 0);
+            waitSlideWrap.style.display = 'block';
+            waitText.style.opacity = 0;
+            replayBtn.style.opacity = 0;
+        }
+
+        function playWaitSlide() {
+            if(waitSlideIndex > 0) {
+                waitSlides[waitSlideIndex - 1].style.opacity = 0;
+            } else {
+                waitSlides[waitSlides.length - 1].style.opacity = 0;
+            }
+            waitSlides[waitSlideIndex].style.opacity = 1;
+            waitSlideIndex++;
+
+            if(waitSlideIndex >= waitSlides.length) {
+                clearInterval(waitInterval);
+                setTimeout(() => {
+                    waitSlideWrap.style.display = 'none';
+                    waitText.style.opacity = 1;
+                    replayBtn.style.opacity = 1;
+                }, 1000);
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            let waitSec = document.getElementById('wait');
+            let rect = waitSec.getBoundingClientRect();
+            if(rect.top < 200 && rect.bottom > 0 && !waitPlayed) {
+                waitPlayed = true;
+                playWaitSlide();
+                waitInterval = setInterval(playWaitSlide, 1500);
+            }
+        });
+
+        replayBtn.addEventListener('click', () => {
+            resetWaitSlide();
+            playWaitSlide();
+            waitInterval = setInterval(playWaitSlide, 1500);
+        });
+    </script>
+</body>
+</html>
